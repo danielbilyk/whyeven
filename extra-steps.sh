@@ -73,20 +73,20 @@ rust () {
 }
 
 # Define all text variables
-year=$(echo -e "import datetime\nprint(datetime.datetime.now().year)" | /usr/bin/python3)
 audio_filename=$(/usr/bin/php -r "echo basename('$theFilename');")
-episode_number=$(/usr/bin/php -r "echo substr(\"$theTitle\", 0, strpos(\"$theTitle\", ': '));")
-episode_name=$(/usr/bin/php -r "echo substr(\"$theTitle\", strpos(\"$theTitle\", ': ') + 2);")
-episode_pubdate=$(/usr/bin/php -r "echo date(\"r\");")
+year=$(/usr/bin/node -e "console.log(new Date().getFullYear())")
+episode_number=$(/usr/bin/python3 -c "print('$theTitle'[0:'$theTitle'.find(': ')])")
+episode_name=$(/usr/bin/awk -F ': ' '{print $2}' <<< "$theTitle")
+episode_pubdate=$(/usr/bin/lua -e 'print(os.date("%a, %d %B %Y %H:%M:%S %Z"))')
 episode_size=$(/usr/bin/perl -e 'print -s "$theFilename"')
 episode_duration=$(rust "println!(\"{}\", &\"$(ffmpeg -i $theFilename 2>&1 | grep Duration)\"[12..20]);")
-episode_guid=$(uuidgen)
+episode_guid=$(/usr/bin/ruby -e 'require "securerandom"' -e 'puts SecureRandom.uuid')
 
 episode_url="$podcast_url/$episode_number.mp3"
 episode_logo="$podcast_url/logo.png"
 
 # Convert audio to a different bitrate and fill out metadata
-if ls "$mac_podcast_folder/$audio_filename" > /dev/null 2>&1; then 
+if ls "$mac_podcast_folder/$audio_filename" > /dev/null 2>&1; then
     rm "$mac_podcast_folder/$audio_filename"
 fi
 /usr/local/bin/ffmpeg -i "$theFilename" -i "$mac_podcast_folder/logo.png" -map_metadata 0 -map 0 -map 1 -metadata title="$theTitle" -metadata artist="$artist" -metadata album="$album" -metadata genre="Podcast" -metadata date="$year" -b:a 168k "$mac_podcast_folder/$audio_filename" > /dev/null
@@ -106,7 +106,7 @@ $search_string
         <itunes:explicit>no</itunes:explicit>
         <itunes:image href="$episode_logo" />
         <guid isPermaLink="false">$episode_guid</guid>
-        <content:encoded> 
+        <content:encoded>
             <![CDATA[ $theShownotes ]]>
         </content:encoded>
     </item>
