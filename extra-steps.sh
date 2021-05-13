@@ -64,6 +64,14 @@ EOF
     ;;
 esac
 
+# Define a function to execute rust code
+rust () {
+	echo "fn main() {$1}" > tmp.rs
+	rustc tmp.rs -o tmp.out
+	value="$(./tmp.out)"
+	rm tmp.out && rm tmp.rs && echo $value
+}
+
 # Define all text variables
 year=$(echo -e "import datetime\nprint(datetime.datetime.now().year)" | /usr/bin/python3)
 audio_filename=$(/usr/bin/php -r "echo basename('$theFilename');")
@@ -71,7 +79,7 @@ episode_number=$(/usr/bin/php -r "echo substr(\"$theTitle\", 0, strpos(\"$theTit
 episode_name=$(/usr/bin/php -r "echo substr(\"$theTitle\", strpos(\"$theTitle\", ': ') + 2);")
 episode_pubdate=$(/usr/bin/php -r "echo date(\"r\");")
 episode_size=$(/usr/bin/perl -e 'print -s "$theFilename"')
-episode_duration=$(/usr/bin/php -r "echo substr(\"$(ffmpeg -i $theFilename 2>&1 | grep Duration)\", 12, 8);")
+episode_duration=$(rust "println!(\"{}\", &\"$(ffmpeg -i $theFilename 2>&1 | grep Duration)\"[12..20]);")
 episode_guid=$(uuidgen)
 
 episode_url="$podcast_url/$episode_number.mp3"
