@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# TODOs: 
-# 1) Create theShownotes for Para Pablo and Cony Cassettes; 
-# 2) Make the rss-feeds of Para Pablo and Cony Cassettes script-compliant.
-
 theFilename=$1
 thePodcast=$2
 theTitle=$3
@@ -83,7 +79,7 @@ episode_number=$(/usr/bin/python3 -c "print('$theTitle'[0:'$theTitle'.find(': ')
 episode_name=$(/usr/bin/awk -F ': ' '{print $2}' <<< "$theTitle")
 episode_pubdate=$(/usr/local/bin/lua -e 'print(os.date("%a, %d %B %Y %H:%M:%S %Z"))')
 episode_size=$(/usr/bin/perl -e "print -s '$theFilename';")
-episode_duration=$(rust "println!(\"{}\", &\"$(/usr/local/bin/ffmpeg -i $theFilename | grep Duration)\"[12..20]);")
+episode_duration=$(rust "println!(\"{}\", &\"$(/usr/local/bin/ffmpeg -i $theFilename 2>&1 | grep Duration)\"[12..20]);")
 episode_guid=$(/usr/bin/ruby -e 'require "securerandom"' -e 'puts SecureRandom.uuid')
 episode_url="$podcast_url/$episode_number.mp3"
 episode_logo="$podcast_url/logo.png"
@@ -92,7 +88,7 @@ episode_logo="$podcast_url/logo.png"
 if ls "$mac_podcast_folder/$audio_filename" > /dev/null 2>&1; then
     rm "$mac_podcast_folder/$audio_filename"
 fi
-/usr/local/bin/ffmpeg -i "$theFilename" -i "$mac_podcast_folder/logo.png" -map_metadata 0 -map 0 -map 1 -metadata title="$theTitle" -metadata artist="$artist" -metadata album="$album" -metadata genre="Podcast" -metadata date="$year" -b:a 168k "$mac_podcast_folder/$audio_filename" > /dev/null
+/usr/local/bin/ffmpeg -i "$theFilename" -i "$mac_podcast_folder/logo.png" -map_metadata 0 -map 0 -map 1 -metadata title="$theTitle" -metadata artist="$artist" -metadata album="$album" -metadata genre="Podcast" -metadata date="$year" -b:a 168k "$mac_podcast_folder/$audio_filename" > /dev/null 2>&1
 
 # Update RSS XML
 search_string="<!-- DO NOT REMOVE THIS COMMENT -->"
@@ -124,8 +120,8 @@ scp "$mac_podcast_folder/$rss_filename" root@linode.bilyk.gq:$web_podcasts_folde
 
 # Backup MP3 and XML to NAS
 if [ -d "$pi_podcast_folder" ]; then
-	cp "$mac_podcast_folder/$audio_filename" $pi_podcast_folder
-	cp "$mac_podcast_folder/$rss_filename" $pi_podcasts_folder
+	cp "$mac_podcast_folder/$audio_filename" "$pi_podcast_folder"
+	cp "$mac_podcast_folder/$rss_filename" "$pi_podcasts_folder"
 else
 	say "Raspberry Pi is not mounted"
 fi
