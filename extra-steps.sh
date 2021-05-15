@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# TODO: 1) Create theShownotes for Para Pablo and Cony Cassettes; 2) Make the rss-feeds of Para Pablo and Cony Cassettes script-compliant.
+# TODOs: 
+# 1) Create theShownotes for Para Pablo and Cony Cassettes; 
+# 2) Make the rss-feeds of Para Pablo and Cony Cassettes script-compliant.
 
 theFilename=$1
 thePodcast=$2
@@ -80,7 +82,7 @@ year=$(/usr/local/bin/node -e "console.log(new Date().getFullYear())")
 episode_number=$(/usr/bin/python3 -c "print('$theTitle'[0:'$theTitle'.find(': ')])")
 episode_name=$(/usr/bin/awk -F ': ' '{print $2}' <<< "$theTitle")
 episode_pubdate=$(/usr/local/bin/lua -e 'print(os.date("%a, %d %B %Y %H:%M:%S %Z"))')
-episode_size=$(/usr/bin/perl -e 'print -s "$theFilename"')
+episode_size=$(/usr/bin/perl -e "print -s '$theFilename';")
 episode_duration=$(rust "println!(\"{}\", &\"$(/usr/local/bin/ffmpeg -i $theFilename | grep Duration)\"[12..20]);")
 episode_guid=$(/usr/bin/ruby -e 'require "securerandom"' -e 'puts SecureRandom.uuid')
 episode_url="$podcast_url/$episode_number.mp3"
@@ -117,16 +119,16 @@ echo "$new_rss_item"
 echo "$(/usr/bin/php -r "echo str_replace('$search_string', '$new_rss_item', file_get_contents('$mac_podcasts_folder/$rss_filename'));")" > "$mac_podcasts_folder/$rss_filename"
 
 # Upload new episode and RSS to server
-#scp "$mac_podcast_folder/$audio_filename" root@linode.bilyk.gq:$web_podcast_folder > /dev/null
-#scp "$mac_podcast_folder/$rss_filename" root@linode.bilyk.gq:$web_podcasts_folder > /dev/null
+scp "$mac_podcast_folder/$audio_filename" root@linode.bilyk.gq:$web_podcast_folder > /dev/null
+scp "$mac_podcast_folder/$rss_filename" root@linode.bilyk.gq:$web_podcasts_folder > /dev/null
 
 # Backup MP3 and XML to NAS
-#if [ -d "$pi_podcast_folder" ]; then
-#	cp "$mac_podcast_folder/$audio_filename" $pi_podcast_folder
-#	cp "$mac_podcast_folder/$rss_filename" $pi_podcasts_folder
-#else
-#	say "Raspberry Pi is not mounted"
-#fi
+if [ -d "$pi_podcast_folder" ]; then
+	cp "$mac_podcast_folder/$audio_filename" $pi_podcast_folder
+	cp "$mac_podcast_folder/$rss_filename" $pi_podcasts_folder
+else
+	say "Raspberry Pi is not mounted"
+fi
 
 # Delete audio file
-# rm $theFilename
+rm $theFilename
