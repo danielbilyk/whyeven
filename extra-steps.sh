@@ -17,7 +17,7 @@ podcasts_url="https://podcasts.bilyk.gq"
 case $thePodcast in
 
   "Para Pablo")
-    artist="Daniel and Luisa"
+    artist="Daniel Bilyk"
     album="Para Pablo"
     mac_podcast_folder="$mac_podcasts_folder/Para Pablo"
 	pi_podcast_folder="$pi_podcasts_folder/Para Pablo"
@@ -52,6 +52,25 @@ $theShownotes
 EOF
 )
     ;;
+    
+  "Интеллектуалы.FM" | "Интеллектуалы.FM-Dev")
+    artist="Daniel Bilyk"
+    album="Интеллектуалы.FM"
+    mac_podcast_folder="$mac_podcasts_folder/Intellectuals.FM"
+	pi_podcast_folder="$pi_podcasts_folder/Intellectuals.FM"
+    web_podcast_folder="$web_podcasts_folder/Intellectuals.FM"
+	podcast_url="$podcasts_url/intellectualsfm"
+	if [[ $thePodcast = "Интеллектуалы.FM-Dev" ]]; then
+		rss_filename="intellectualsfm_dev.xml"
+	else
+		rss_filename="intellectualsfm.xml"
+	fi
+	theShownotes=$(cat <<EOF
+$theShownotes
+<p>Наш плейлист на Spotify можно найти <a href="https://open.spotify.com/playlist/1QHWF9ScBStxATQOYGIaUD?si=3f9f26b2411a4c96">вот тут</a>.</p>
+EOF
+)
+    ;;
 
   "Cony Cassettes")
     artist="Daniel Bilyk"
@@ -70,7 +89,7 @@ EOF
 esac
 
 # Define all text variables
-audio_filename=$(/usr/bin/php -r "echo basename('$theFilename');")
+audio_filename=$(/usr/local/bin/php -r "echo basename('$theFilename');")
 year=$(/usr/local/bin/node -e "console.log(new Date().getFullYear())")
 episode_number=$(/usr/bin/python3 -c "print('$theTitle'[0:'$theTitle'.find(': ')])")
 episode_name=$(/usr/bin/awk -F ': ' '{print $2}' <<< "$theTitle")
@@ -105,33 +124,38 @@ $search_string
         <itunes:explicit>no</itunes:explicit>
         <itunes:image href="$episode_logo" />
         <guid isPermaLink="false">$episode_guid</guid>
-        <content:encoded>
+        <description>
             <![CDATA[ $theShownotes ]]>
-        </content:encoded>
+        </description>
     </item>
 EOF
 )
     ;;
     
-    "Cony Cassettes" | "Para Pablo")
+    "Cony Cassettes" | "Para Pablo" | "Интеллектуалы.FM")
     new_rss_item=$(cat <<EOF
 $search_string
-        <item>
-            <title>$theTitle</title>
-            <author>$artist</author>
-            <pubDate>$episode_pubdate</pubDate>
-            <guid isPermaLink="false">$episode_guid</guid>
-            <content:encoded>
-                <![CDATA[ $theShownotes ]]>
-            </content:encoded>
-            <enclosure length="$episode_size" type="audio/mpeg" url="$episode_url" />
-        </item>
+    <item>
+        <title>$theTitle</title>
+        <itunes:episode>$episode_number</itunes:episode>
+        <itunes:title>$episode_name</itunes:title>
+        <itunes:author>$artist</itunes:author>
+        <pubDate>$episode_pubdate</pubDate>
+        <enclosure url="$episode_url" length="$episode_size" type="audio/mpeg"/>
+        <itunes:duration>$episode_duration</itunes:duration>
+        <itunes:explicit>no</itunes:explicit>
+        <itunes:image href="$episode_logo" />
+        <guid isPermaLink="false">$episode_guid</guid>
+        <description>
+            <![CDATA[ $theShownotes ]]>
+        </description>
+    </item>
 EOF
 )
     ;;
 esac
 echo "$new_rss_item"
-echo "$(/usr/bin/php -r "echo str_replace('$search_string', '$new_rss_item', file_get_contents('$mac_podcasts_folder/$rss_filename'));")" > "$mac_podcasts_folder/$rss_filename"
+echo "$(/usr/local/bin/php -r "echo str_replace('$search_string', '$new_rss_item', file_get_contents('$mac_podcasts_folder/$rss_filename'));")" > "$mac_podcasts_folder/$rss_filename"
 
 # Upload new episode and RSS to server
 scp "$mac_podcast_folder/$audio_filename" root@linode.bilyk.gq:$web_podcast_folder > /dev/null
