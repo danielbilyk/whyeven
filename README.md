@@ -7,10 +7,10 @@
 
 Welcome to the little corner of podcasting mayhem.
 
-This project sprang to life one fateful evening when a motley crew of TUM-based computer science students, and I – political science student at one of the most prominent technical universities of the country – decided that my self-hosted podcasting workflow needed a dash of automation. I wrote, recorded, edited, sounddesigned, published and hosted my podcasts myself, so I needed a way to:
-a) auto-fill the RSS feed for each of the shows with necessary information;
-b) back it all up to my NAS;
-c) try to do it in one evening, two at max.
+This project sprang to life one fateful evening when a motley crew of TUM-based computer science students, and I – political science student at one of the most prominent technical universities of the country – decided that my self-hosted podcasting workflow needed a dash of automation. I wrote, recorded, edited, sounddesigned, published and hosted my podcasts myself, so I needed a way to:  
+a) auto-fill the RSS feed for each of the shows with necessary information;  
+b) back it all up to my NAS;  
+c) try to do it in one evening, two at max.  
 
 The name of the project – Whyeven – is self-descriptive. You'll be asking yourself this question many times during the installation and setup process. I did too. This is where the motto "because we can, not because we should" takes on a life of its own.
 
