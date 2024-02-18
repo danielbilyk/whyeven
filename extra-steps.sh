@@ -3,83 +3,43 @@
 theFilename=$1
 thePodcast=$2
 theTitle=$3
-theShownotes=$4
+theShownotes=$4 # Be sure to have the shownotes in HTML format
 
-# MacBook
-mac_podcasts_folder="/Users/dani/Projects/FM"
+# User-specific folders
+user_projects_folder="/path/to/projects" # Adjust this path to your projects directory
 # NAS
-pi_podcasts_folder="/Volumes/SSDani/Projects/FM"
+nas_podcasts_folder="/path/to/nas/projects" # Adjust this path to your NAS directory
 # Webserver
-web_podcasts_folder="/var/www/podcasts"
-podcasts_url="https://podcasts.bilyk.gq"
+web_podcasts_folder="/var/www/podcasts" # Adjust this path accordingly
+podcasts_url="https://yourdomain.com/podcasts" # Adjust the domain accordintly
 
 # Setup podcast-specific config
+
 case $thePodcast in
 
-  "Para Pablo")
-    artist="Daniel Bilyk"
-    album="Para Pablo"
-    mac_podcast_folder="$mac_podcasts_folder/Para Pablo"
-	pi_podcast_folder="$pi_podcasts_folder/Para Pablo"
-    web_podcast_folder="$web_podcasts_folder/ParaPablo"
-	podcast_url="$podcasts_url/ParaPablo"
-	rss_filename="parapablo.xml"
+  "Podcast 1")
+    artist="Artist Name"
+    album="Podcast 1"
+    user_project_folder="$user_projects_folder/Podcast-1"
+	nas_podcast_folder="$nas_podcasts_folder/Podcast-1"
+    web_podcast_folder="$web_podcasts_folder/Podcast-1"
+	podcast_url="$podcasts_url/Podcast-1"
+	rss_filename="podcast-1.xml"
     theShownotes=$(cat <<EOF
 $theShownotes
-<p>You’ll find the Spotify playlist <a href="https://open.spotify.com/playlist/1evRRLtrtSVlX8LhV9klZD?si=8ae8cc02ad104b88">here</a>.</p>
+<p>Show-specific always-present links or information goes here.</a>.</p>
 EOF
 )
     ;;
 
-  "Lockдауны" | "Lockдауны_Dev")
-    artist="Даня и Камчатка"
-    album="Lockдауны"
-    mac_podcast_folder="$mac_podcasts_folder/Lockdowns"
-	pi_podcast_folder="$pi_podcasts_folder/Lockdowns"
-    web_podcast_folder="$web_podcasts_folder/lockdowns"
-	podcast_url="$podcasts_url/lockdowns"
-	if [[ $thePodcast = "Lockдауны_Dev" ]]; then
-		rss_filename="lockdowns_dev.xml"
-	else
-		rss_filename="lockdowns.xml"
-	fi
-	theShownotes=$(cat <<EOF
-$theShownotes
-<p>Ссылки-ссылочки на себя и вот это всё:</p><ul>
-<li>	<a href="https://www.instagram.com/raspberden/">Instagram</a> Камчатки</li>
-<li>	<a href="https://t.me/bilykchannel">Канал</a> Дани</li>
-<li>	<a href="https://t.me/gomurmel">Канал</a> Камчатки </li></ul>
-EOF
-)
-    ;;
-    
-  "Интеллектуалы.FM" | "Интеллектуалы.FM-Dev")
-    artist="Daniel Bilyk"
-    album="Интеллектуалы.FM"
-    mac_podcast_folder="$mac_podcasts_folder/Intellectuals.FM"
-	pi_podcast_folder="$pi_podcasts_folder/Intellectuals.FM"
-    web_podcast_folder="$web_podcasts_folder/Intellectuals.FM"
-	podcast_url="$podcasts_url/intellectualsfm"
-	if [[ $thePodcast = "Интеллектуалы.FM-Dev" ]]; then
-		rss_filename="intellectualsfm_dev.xml"
-	else
-		rss_filename="intellectualsfm.xml"
-	fi
-	theShownotes=$(cat <<EOF
-$theShownotes
-<p>Наш плейлист на Spotify можно найти <a href="https://open.spotify.com/playlist/1QHWF9ScBStxATQOYGIaUD?si=3f9f26b2411a4c96">вот тут</a>.</p>
-EOF
-)
-    ;;
-
-  "Cony Cassettes")
-    artist="Daniel Bilyk"
-    album="Cony Cassettes"
-    mac_podcast_folder="$mac_podcasts_folder/Cony Cassettes"
-	pi_podcast_folder="$pi_podcasts_folder/Cony Cassettes"
-    web_podcast_folder="$web_podcasts_folder/ConyCassettes"
-	podcast_url="$podcasts_url/ConyCassettes"
-	rss_filename="conycassettes.xml"
+  "Podcast 2")
+    artist="Artist Name"
+    album="Podcast 2"
+    user_project_folder="$user_projects_folder/Podcast-2"
+	nas_podcast_folder="$nas_podcasts_folder/Podcast-2"
+    web_podcast_folder="$web_podcasts_folder/Podcast-2"
+	podcast_url="$podcasts_url/Podcast-2"
+	rss_filename="podcast-2.xml"
     ;;
 
   *)
@@ -87,6 +47,22 @@ EOF
     exit 0
     ;;
 esac
+
+# Create or use specific directories based on the podcast name, removing spaces and special characters
+sanitized_podcast_name=$(echo "$thePodcast" | tr " " "_" | sed 's/[^a-zA-Z0-9_]//g')
+
+user_projects_folder="$user_podcasts_folder/$sanitized_podcast_name"
+nas_podcast_folder="$nas_podcasts_folder/$sanitized_podcast_name"
+web_podcast_folder="$web_podcasts_folder/$sanitized_podcast_name"
+podcast_url="$podcasts_url/$sanitized_podcast_name"
+rss_filename="${sanitized_podcast_name,,}.xml" # Convert to lowercase for the RSS filename
+
+# Customize shownotes with static ever-present links or information if needed
+theShownotes=$(cat <<EOF
+$theShownotes
+<p>Additional show-specific notes or links can go here.</p>
+EOF
+)
 
 # Define all text variables
 audio_filename=$(/usr/local/bin/php -r "echo basename('$theFilename');")
@@ -101,16 +77,18 @@ episode_url="$podcast_url/$episode_number.mp3"
 episode_logo="$podcast_url/logo.png"
 
 # Convert audio to a different bitrate and fill out metadata
-if ls "$mac_podcast_folder/$audio_filename" > /dev/null 2>&1; then
-    rm "$mac_podcast_folder/$audio_filename"
+if ls "$user_projects_folder/$audio_filename" > /dev/null 2>&1; then
+    rm "$user_projects_folder/$audio_filename"
 fi
-/usr/local/bin/ffmpeg -i "$theFilename" -i "$mac_podcast_folder/logo.png" -map_metadata 0 -map 0 -map 1 -metadata title="$theTitle" -metadata artist="$artist" -metadata album="$album" -metadata genre="Podcast" -metadata date="$year" -b:a 168k "$mac_podcast_folder/$audio_filename" > /dev/null 2>&1
+/usr/local/bin/ffmpeg -i "$theFilename" -i "$user_projects_folder/logo.png" -map_metadata 0 -map 0 -map 1 -metadata title="$theTitle" -metadata artist="$artist" -metadata album="$album" -metadata genre="Podcast" -metadata date="$year" -b:a 168k "$user_projects_folder/$audio_filename" > /dev/null 2>&1
 
-# Update RSS XML
+# Update RSS XML with new episode details
+# Here you might want to adjust how the new RSS item is generated based on your needs. For example
+
 search_string="<!-- DO NOT REMOVE THIS COMMENT -->"
 case $thePodcast in 
 
-    "Lockдауны" | "Lockдауны_Dev")
+    "Podcast 1")
     new_rss_item=$(cat <<EOF
 $search_string
     <item>
@@ -132,7 +110,7 @@ EOF
 )
     ;;
     
-    "Cony Cassettes" | "Para Pablo" | "Интеллектуалы.FM")
+    "Podcast 2")
     new_rss_item=$(cat <<EOF
 $search_string
     <item>
@@ -155,19 +133,20 @@ EOF
     ;;
 esac
 echo "$new_rss_item"
-echo "$(/usr/local/bin/php -r "echo str_replace('$search_string', '$new_rss_item', file_get_contents('$mac_podcasts_folder/$rss_filename'));")" > "$mac_podcasts_folder/$rss_filename"
+echo "$(/usr/local/bin/php -r "echo str_replace('$search_string', '$new_rss_item', file_get_contents('$user_projects_folder/$rss_filename'));")" > "$user_projects_folder/$rss_filename"
 
 # Upload new episode and RSS to server
-scp "$mac_podcast_folder/$audio_filename" root@linode.bilyk.gq:$web_podcast_folder > /dev/null
-scp "$mac_podcasts_folder/$rss_filename" root@linode.bilyk.gq:$web_podcasts_folder > /dev/null
+scp "$user_project_folder/$audio_filename" user@yourserver.com:$web_podcast_folder > /dev/null
+scp "$user_projects_folder/$rss_filename" user@yourserver.com:$web_podcast_folder > /dev/null
 
 # Backup MP3 and XML to NAS
-if [ -d "$pi_podcast_folder" ]; then
-	cp "$mac_podcast_folder/$audio_filename" "$pi_podcast_folder"
-	cp "$mac_podcasts_folder/$rss_filename" "$pi_podcasts_folder"
+if [ -d "$nas_podcast_folder" ]; then
+	cp "$user_project_folder/$audio_filename" "$nas_podcast_folder"
+	cp "$user_projects_folder/$rss_filename" "$nas_podcast_folder"
 else
-	say "Raspberry Pi is not mounted"
+	say "NAS is not mounted"
+	# `say` won't work on non Mac computers
 fi
 
 # Delete audio file
-rm $theFilename
+rm "$theFilename"
